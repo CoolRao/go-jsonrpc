@@ -495,6 +495,8 @@ func (c *wsConn) setupPings() func() {
 				c.writeLk.Lock()
 				if err := c.conn.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
 					log.Errorf("sending ping message: %+v", err)
+					// todo xjrw  ReConnect
+					c.RetryConnect()
 				}
 				c.writeLk.Unlock()
 			case <-stop:
@@ -509,6 +511,15 @@ func (c *wsConn) setupPings() func() {
 			close(stop)
 		})
 	}
+}
+
+// xjrw: ping 失败,立即重连
+
+var XjrwCloserError = errors.New("xjrw: ping fail error, websocket try connect ")
+
+func (c *wsConn) RetryConnect() {
+	close(c.incoming)
+	c.incomingErr = XjrwCloserError
 }
 
 func (c *wsConn) handleWsConn(ctx context.Context) {
@@ -556,8 +567,9 @@ func (c *wsConn) handleWsConn(ctx context.Context) {
 		case r, ok := <-c.incoming:
 			if !ok {
 				if c.incomingErr != nil {
-					if !websocket.IsCloseError(c.incomingErr, websocket.CloseNormalClosure) {
+					if !websocket.IsCloseError(c.incomingErr, websocket.CloseNormalClosure) || c.incomingErr == XjrwCloserError {
 						log.Debugw("websocket error", "error", c.incomingErr)
+						log.Debugw("xjrw:websocket error,", c.incomingErr)
 						// connection dropped unexpectedly, do our best to recover it
 						c.closeInFlight()
 						c.closeChans()
