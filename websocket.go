@@ -497,6 +497,7 @@ func (c *wsConn) setupPings() func() {
 					log.Errorf("sending ping message: %+v", err)
 					// todo xjrw  ReConnect
 					c.RetryConnect()
+
 				}
 				c.writeLk.Unlock()
 			case <-stop:
