@@ -535,7 +535,7 @@ func (c *wsConn) handleWsConn(ctx context.Context) {
 	defer close(c.exiting)
 
 	// ////
-
+	log.Infof("xjrw: handleWsConn")
 	// on close, make sure to return from all pending calls, and cancel context
 	//  on all calls we handle
 	defer c.closeInFlight()
