@@ -496,7 +496,9 @@ func (c *wsConn) setupPings() func() {
 				if err := c.conn.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
 					log.Errorf("sending ping message: %+v", err)
 					// todo xjrw  ReConnect
-					c.RetryConnect()
+					if c.connFactory != nil {
+						c.RetryConnect()
+					}
 
 				}
 				c.writeLk.Unlock()
@@ -533,6 +535,8 @@ func (c *wsConn) handleWsConn(ctx context.Context) {
 
 	c.registerCh = make(chan outChanReg)
 	defer close(c.exiting)
+
+	log.Infof("xjrw: websocket ")
 
 	// ////
 	log.Infof("xjrw: handleWsConn")
