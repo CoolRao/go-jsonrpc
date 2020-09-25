@@ -519,6 +519,7 @@ func (c *wsConn) setupPings() func() {
 var XjrwCloserError = errors.New("xjrw: ping fail error, websocket try connect ")
 
 func (c *wsConn) RetryConnect() {
+	log.Error("xjrw: start retry connect ")
 	close(c.incoming)
 	c.incomingErr = XjrwCloserError
 }
@@ -569,8 +570,8 @@ func (c *wsConn) handleWsConn(ctx context.Context) {
 			if !ok {
 				if c.incomingErr != nil {
 					if !websocket.IsCloseError(c.incomingErr, websocket.CloseNormalClosure) || c.incomingErr == XjrwCloserError {
-						log.Debugw("websocket error", "error", c.incomingErr)
-						log.Debugw("xjrw:websocket error,", c.incomingErr)
+						log.Error("websocket error", "error", c.incomingErr)
+						log.Error("xjrw:websocket error,", c.incomingErr)
 						// connection dropped unexpectedly, do our best to recover it
 						c.closeInFlight()
 						c.closeChans()
@@ -588,7 +589,7 @@ func (c *wsConn) handleWsConn(ctx context.Context) {
 								time.Sleep(c.reconnectBackoff.next(attempts))
 								var err error
 								if conn, err = c.connFactory(); err != nil {
-									log.Debugw("websocket connection retry failed", "error", err)
+									log.Error("websocket connection retry failed", "error", err)
 								}
 								select {
 								case <-ctx.Done():
@@ -600,6 +601,7 @@ func (c *wsConn) handleWsConn(ctx context.Context) {
 							}
 
 							c.writeLk.Lock()
+							log.Infof("xjrw: reconnect success")
 							c.conn = conn
 							c.incomingErr = nil
 
