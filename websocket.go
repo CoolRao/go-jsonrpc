@@ -539,7 +539,6 @@ func (c *wsConn) handleWsConn(ctx context.Context) {
 	log.Infof("xjrw: websocket ")
 
 	// ////
-	log.Infof("xjrw: handleWsConn")
 	// on close, make sure to return from all pending calls, and cancel context
 	//  on all calls we handle
 	defer c.closeInFlight()
@@ -582,18 +581,18 @@ func (c *wsConn) handleWsConn(ctx context.Context) {
 						c.incoming = make(chan io.Reader) // listen again for responses
 						go func() {
 							if c.connFactory == nil { // likely the server side, don't try to reconnect
+								log.Info("xjrw: connFactory is nil ")
 								return
 							}
 
 							stopPings()
-
 							attempts := 0
 							var conn *websocket.Conn
 							for conn == nil {
 								time.Sleep(c.reconnectBackoff.next(attempts))
 								var err error
 								if conn, err = c.connFactory(); err != nil {
-									log.Error("websocket connection retry failed", "error", err)
+									log.Error("websocket connection retry failed", "error", err,)
 								}
 								select {
 								case <-ctx.Done():
